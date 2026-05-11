@@ -221,6 +221,10 @@ const RPPForm: React.FC = () => {
             </div>
           </div>
           <div className="space-y-1">
+            <span className="text-[11px] text-slate-400 font-medium">h. Jumlah Pertemuan</span>
+            <input name="jumlahPertemuan" value={rppData.jumlahPertemuan} onChange={handleInputChange} type="number" min="1" max="10" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
+          </div>
+          <div className="space-y-1">
             <span className="text-[11px] text-slate-400 font-medium">h. Nama Guru / NIP</span>
             <select name="namaGuru" value={rppData.namaGuru} onChange={handleInputChange} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-slate-700">
               <option value="">-- Pilih Guru (Setup di Config) --</option>

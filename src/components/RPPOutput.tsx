@@ -44,14 +44,15 @@ const RPPOutput: React.FC = () => {
             .lampiran-section { page-break-before: always; }
             hr { display: none; }
             .page-footer {
-                position: fixed;
-                bottom: 1cm;
-                left: 2cm;
-                right: 2cm;
-                font-size: 9pt;
+                margin-top: 2rem;
+                font-size: 8pt;
                 color: #64748b;
-                font-style: italic;
+                display: flex;
+                justify-content: space-between;
+                border-top: 1px solid #cbd5e1;
+                padding-top: 5px;
             }
+            .lampiran-section { padding-bottom: 2rem; page-break-before: always; }
             @media print {
               .no-print { display: none; }
             }
@@ -95,13 +96,26 @@ const RPPOutput: React.FC = () => {
       const guru = parseNameAndNip(rppData.namaGuru);
       const today = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
 
-        for (const group of rppData.tujuanPembelajaran) {
+      const allTps: {group: any, tp: any}[] = [];
+      for (const group of rppData.tujuanPembelajaran) {
         for (const tp of group.tps) {
-          rppCounter++;
-          const isPBL = tp.level === 'Memahami';
-          const modelPembelajaran = isPBL ? 'Problem Based Learning (PBL)' : 'Project Based Learning (PjBL)';
-          
-          // Waktu calculation
+          allTps.push({group, tp});
+        }
+      }
+
+      const targetCount = parseInt(rppData.jumlahPertemuan as any, 10) || 1;
+      const tpPairs = allTps.slice(0, targetCount);
+
+      for (let idx = 0; idx < tpPairs.length; idx++) {
+        const { group, tp } = tpPairs[idx];
+        rppCounter++;
+        const isPBL = tp.level === 'Memahami';
+        // Select just the first chosen model, or fallback
+        const selectedModelList = rppData.modelPembelajaranList || [];
+        let rppModelLokal = isPBL ? 'Problem-Based Learning (PBL)' : 'Project-Based Learning (PjBL)';
+        if (selectedModelList.length > 0) rppModelLokal = selectedModelList[0];
+        
+        // Waktu calculation
           const jpMatch = rppData.alokasiWaktu.match(/(\d+)\s*JP\s*x\s*(\d+)\s*Menit/i);
           let totalMenit = 90;
           if (jpMatch) {
@@ -214,6 +228,7 @@ const RPPOutput: React.FC = () => {
                     </table>
                     <p class="text-sm mt-3"><strong>Nilai Akhir</strong> = (Skor PG + (Skor Uraian / ${soal.uraian.length * 4} * 10)) / 2 * 10</p>
                 </div>
+                <div class="page-footer mt-12">${guru.name} | ${rppData.mapel} | ${rppData.tahunPelajaran} | Pertemuan ${rppCounter} - Lampiran</div>
               </div>
             `;
           } catch(e) {
@@ -221,35 +236,25 @@ const RPPOutput: React.FC = () => {
              hotsHtml = `<div class="lampiran-section mt-8 text-red-600">Gagal men-generate instrument penilaian menggunakan AI.</div>`
           }
 
-          const ALL_MODELS = [
-             "Project-Based Learning (PjBL): Pembelajaran berbasis proyek.",
-             "Problem-Based Learning (PBL): Pembelajaran berbasis masalah.",
-             "Inquiry-Based Learning: Pembelajaran berbasis inkuiri (penyelidikan).",
-             "Discovery Learning: Pembelajaran penemuan.",
-             "Active Learning: Partisipasi aktif peserta didik."
-          ];
-          const selectedModels = rppData.modelPembelajaranList || [];
-          
-          let modelHtml = '<ul class="list-none m-0 ml-0 space-y-1">';
-          ALL_MODELS.forEach(m => {
-             const key = m.split(':')[0].trim();
-             const isChecked = selectedModels.includes(key);
-             modelHtml += `<li><span style="font-family: monospace; font-size: 14px;">${isChecked ? '[&#x2713;]' : '[&nbsp;&nbsp;]'}</span> ${m}</li>`;
-          });
-          modelHtml += '</ul>';
-
           const rppHtml = `
-            <div class="rpp-section px-12 py-12 mb-8 bg-white shadow-2xl font-serif ring-1 ring-slate-300 flex flex-col min-h-[842px] print:shadow-none print:ring-0 print:p-0 print:mb-0">
+            <div class="rpp-section relative px-12 py-12 mb-8 bg-white shadow-2xl font-serif ring-1 ring-slate-300 flex flex-col min-h-[842px] print:shadow-none print:ring-0 print:p-0 print:mb-0">
                <div class="text-center border-b-2 border-slate-900 pb-4 mb-6">
                  <h2 class="text-xl font-bold uppercase tracking-wide">Rencana Pelaksanaan Pembelajaran</h2>
-                 <p class="text-sm italic">Satuan Pendidikan: ${rppData.namaSekolah}</p>
                  <p class="text-sm italic font-semibold mt-1">Pertemuan Ke-${rppCounter}</p>
                </div>
 
                <table class="w-full text-sm border-2 border-slate-900 mb-6">
                  <tbody>
                    <tr>
-                     <td class="font-bold border border-slate-300 p-2 w-[180px] align-top bg-slate-50">Mata Pelajaran:</td>
+                     <td class="font-bold border border-slate-300 p-2 w-[180px] align-top bg-slate-50">Nama Pembuat:</td>
+                     <td class="border border-slate-300 p-2">${guru.name}</td>
+                   </tr>
+                   <tr>
+                     <td class="font-bold border border-slate-300 p-2 align-top bg-slate-50">Asal Sekolah:</td>
+                     <td class="border border-slate-300 p-2">${rppData.namaSekolah}</td>
+                   </tr>
+                   <tr>
+                     <td class="font-bold border border-slate-300 p-2 align-top bg-slate-50">Mata Pelajaran:</td>
                      <td class="border border-slate-300 p-2">${rppData.mapel}</td>
                    </tr>
                    <tr>
@@ -262,27 +267,45 @@ const RPPOutput: React.FC = () => {
                    </tr>
                    <tr>
                      <td class="font-bold border border-slate-300 p-2 align-top bg-slate-50">Model Pembelajaran:</td>
-                     <td class="border border-slate-300 p-2">${modelHtml}</td>
+                     <td class="border border-slate-300 p-2">${rppModelLokal}</td>
                    </tr>
                  </tbody>
                </table>
 
-               <div class="space-y-4">
+               <div class="space-y-4 pb-16">
                  <div class="space-y-1">
-                   <h3 class="text-sm font-bold border-l-4 border-slate-900 pl-2 uppercase">A. Tujuan Pembelajaran</h3>
-                   <p class="text-[13px] leading-relaxed text-slate-700 ml-3 text-justify">${tp.text}</p>
+                   <h3 class="text-sm font-bold border-l-4 border-slate-900 pl-2 uppercase">Identifikasi</h3>
+                   <ul class="list-none ml-4 text-[13px] leading-relaxed text-slate-700">
+                     <li><strong>Materi Pelajaran:</strong> ${group.topic}</li>
+                     <li><strong>Relevansi dengan Kehidupan Nyata Peserta Didik:</strong> ${rppData.lingkungan || '-'}</li>
+                     <li><strong>Tingkat Kesulitan:</strong> Disetel berdasarkan karakteristik (${rppData.karakteristik || '-'})</li>
+                     <li><strong>Dimensi Profil Lulusan:</strong> ${rppData.profilLulusan.length ? rppData.profilLulusan.join(', ') : '-'}</li>
+                     <li><strong>7KAIH:</strong> ${rppData.tujuhKAIH?.length ? rppData.tujuhKAIH.join(', ') : '-'}</li>
+                   </ul>
                  </div>
-                 
+
                  <div class="space-y-1 mt-4">
-                   <h3 class="text-sm font-bold border-l-4 border-slate-900 pl-2 uppercase">B. Pemahaman Bermakna & Pertanyaan</h3>
-                   <div class="text-[13px] leading-relaxed text-slate-700 ml-3">
-                     <p><strong>Pemahaman:</strong> Siswa menyadari bahwa materi ${group.topic} bermanfaat dalam kehidupan nyata.</p>
-                     <p><strong>Pemantik:</strong> "Pernahkah kalian memikirkan bagaimana ${group.topic} bekerja?"</p>
-                   </div>
+                   <h3 class="text-sm font-bold border-l-4 border-slate-900 pl-2 uppercase">Diferensiasi</h3>
+                   <ul class="list-none ml-4 text-[13px] leading-relaxed text-slate-700">
+                     <li><strong>Berdasarkan minat:</strong> ${rppData.minat || '-'}</li>
+                     <li><strong>Gaya Belajar:</strong> ${rppData.learningModes?.length ? rppData.learningModes.join(', ') : '-'}</li>
+                   </ul>
+                 </div>
+
+                 <div class="space-y-1 mt-4">
+                   <h3 class="text-sm font-bold border-l-4 border-slate-900 pl-2 uppercase">Desain Pembelajaran</h3>
+                   <ul class="list-none ml-4 text-[13px] leading-relaxed text-slate-700">
+                     <li><strong>Praktik Pedagogis:</strong> Menerapkan konsep ${rppModelLokal} secara interaktif.</li>
+                     <li><strong>Kemitraan Pembelajaran:</strong> ${rppData.kemitraan || '-'}</li>
+                     <li><strong>Lingkungan Pembelajaran:</strong> ${rppData.lingkunganPembelajaran || '-'}</li>
+                     <li><strong>Pemanfaatan Digital:</strong> Perencanaan (${rppData.digitalPerencanaan || '-'}), Pelaksanaan (${rppData.digitalPelaksanaan || '-'}), Asesmen (${rppData.digitalAsesmen || '-'})</li>
+                     <li><strong>Sumber Belajar:</strong> ${rppData.saranaPrasarana || '-'}</li>
+                   </ul>
                  </div>
 
                  <div class="space-y-1 mt-4 block">
-                   <h3 class="text-sm font-bold border-l-4 border-slate-900 pl-2 uppercase mb-2">C. Kegiatan Pembelajaran</h3>
+                   <h3 class="text-sm font-bold border-l-4 border-slate-900 pl-2 uppercase mb-2">Langkah-langkah Pembelajaran</h3>
+                   <p class="text-[13px] leading-relaxed text-slate-700 ml-3 mb-2 font-medium">Tujuan Pembelajaran: ${tp.text}</p>
                    <table class="w-full text-[13px] border border-slate-300 ml-0 lg:ml-2">
                      <thead class="bg-indigo-50">
                        <tr>
@@ -320,16 +343,20 @@ const RPPOutput: React.FC = () => {
                  </div>
 
                  <div class="space-y-1 mt-4">
-                   <h3 class="text-sm font-bold border-l-4 border-slate-900 pl-2 uppercase">D. Asesmen</h3>
-                   <ul class="list-disc ml-8 mt-1 text-[13px] leading-relaxed text-slate-700">
-                     <li><strong>Formatif:</strong> Sikap (Profil Lulusan: ${rppData.profilLulusan.length > 0 ? rppData.profilLulusan.join(', ') : '-'}, 7KAIH: ${rppData.tujuhKAIH && rppData.tujuhKAIH.length > 0 ? rppData.tujuhKAIH.join(', ') : '-'}) dan Keaktifan</li>
-                     <li><strong>Sumatif:</strong> Tes Tulis HOTS (Terlampir)</li>
-                     <li class="mt-1"><strong>Learning Style Focus:</strong> ${rppData.learningModes && rppData.learningModes.length > 0 ? rppData.learningModes.join(', ') : '-'}</li>
+                   <h3 class="text-sm font-bold border-l-4 border-slate-900 pl-2 uppercase">Asesmen</h3>
+                   <ul class="list-none ml-4 text-[13px] leading-relaxed text-slate-700">
+                     <li class="font-bold border-b border-slate-200 pb-1 mb-1 mt-2">Asesmen Pembelajaran</li>
+                     <li><strong>Asesmen pada Awal Pembelajaran:</strong> Tanya jawab untuk pemantik diskusi awal</li>
+                     <li><strong>Asesmen pada Proses Pembelajaran:</strong> Lembar observasi sikap dan keaktifan diskusi kelompok</li>
+                     <li class="font-bold border-b border-slate-200 pb-1 mb-1 mt-3">Penilaian Kinerja (Assessment as Learning & For Learning)</li>
+                     <li>Pembuatan hasil karya atau presentasi laporan / proyek.</li>
+                     <li class="font-bold border-b border-slate-200 pb-1 mb-1 mt-3">Peer Assessment (Assessment as Learning)</li>
+                     <li>Feedback / Umpan balik antar teman (Peer review) saat memecahkan masalah.</li>
                    </ul>
                  </div>
                </div>
 
-               <div class="mt-auto flex justify-between pt-12 text-sm">
+               <div class="mt-auto flex justify-between pt-12 text-sm relative z-10 pb-16">
                   <div class="text-center w-48">
                     <p>Mengetahui,</p>
                     <p class="mb-16">Kepala Sekolah</p>
@@ -343,13 +370,14 @@ const RPPOutput: React.FC = () => {
                     <p>NIP. ${guru.nip || '...'}</p>
                   </div>
                </div>
+               
+               <div class="page-footer">${guru.name} | ${rppData.mapel} | ${rppData.tahunPelajaran} | Pertemuan ${rppCounter}</div>
 
                ${hotsHtml}
             </div>
           `;
           generatedRpps.push(rppHtml);
         }
-      }
       setRppContentRefs(generatedRpps);
       setStep(6); 
     } catch(err) {

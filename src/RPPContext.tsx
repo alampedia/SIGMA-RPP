@@ -35,6 +35,7 @@ const defaultRPPData: RPPData = {
   digitalPelaksanaan: 'Pemanfaatan AI, Canva.',
   digitalAsesmen: 'Pemanfaatan Quizziz, Canva.',
   cp_full_text: '',
+  jumlahPertemuan: 1,
   tujuanPembelajaran: [],
 };
 

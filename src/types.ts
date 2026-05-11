@@ -47,5 +47,6 @@ export interface RPPData {
   digitalPelaksanaan: string;
   digitalAsesmen: string;
   cp_full_text: string;
+  jumlahPertemuan: number;
   tujuanPembelajaran: TPGroup[];
 }
