@@ -6,6 +6,7 @@ export interface AppSettings {
   kepsekName: string;
   kepsekNip: string;
   namaSekolahDefault: string;
+  logoUrl: string;
 }
 
 export interface TP {

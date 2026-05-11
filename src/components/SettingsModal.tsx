@@ -15,6 +15,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   const [kepsekName, setKepsekName] = useState(settings.kepsekName || '');
   const [kepsekNip, setKepsekNip] = useState(settings.kepsekNip || '');
   const [namaSekolahDefault, setNamaSekolahDefault] = useState(settings.namaSekolahDefault || '');
+  const [logoUrl, setLogoUrl] = useState(settings.logoUrl || '');
 
   const handleSave = () => {
     updateSettings({
@@ -25,6 +26,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
       kepsekName,
       kepsekNip,
       namaSekolahDefault,
+      logoUrl,
     });
     onClose();
   };
@@ -35,6 +37,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
         <h2 className="text-2xl font-bold mb-4 text-slate-800 border-b pb-2">Konfigurasi API & Supabase</h2>
         
         <div className="space-y-4 my-6 text-slate-700 max-h-[60vh] overflow-y-auto pr-2">
+          <div>
+            <label className="block font-semibold mb-1 text-sm">Logo URL (Favicon & Header)</label>
+            <input 
+              type="text" 
+              className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+              placeholder="https://example.com/logo.png"
+              value={logoUrl}
+              onChange={e => setLogoUrl(e.target.value)}
+            />
+          </div>
           <div>
             <label className="block font-semibold mb-1 text-sm">Nama Sekolah Default</label>
             <input 

@@ -15,6 +15,7 @@ const defaultSettings: AppSettings = {
   kepsekName: 'Akhmad Nasor, S.Pd',
   kepsekNip: '198704082019031001',
   namaSekolahDefault: 'SDN Baujeng I',
+  logoUrl: '',
 };
 
 const SettingsContext = createContext<SettingsContextProps | undefined>(undefined);
@@ -58,6 +59,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             kepsekName: remoteSettings.kepsek_name || prev.kepsekName,
             kepsekNip: remoteSettings.kepsek_nip || prev.kepsekNip,
             namaSekolahDefault: remoteSettings.nama_sekolah_default || prev.namaSekolahDefault,
+            logoUrl: remoteSettings.logo_url || prev.logoUrl,
           }));
         }
       } catch (err) {
@@ -85,6 +87,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         { setting_key: 'kepsek_name', setting_value: newSettings.kepsekName },
         { setting_key: 'kepsek_nip', setting_value: newSettings.kepsekNip },
         { setting_key: 'nama_sekolah_default', setting_value: newSettings.namaSekolahDefault },
+        { setting_key: 'logo_url', setting_value: newSettings.logoUrl },
       ].map(u => ({ ...u, updated_at: new Date().toISOString() }));
 
       const { error } = await supabase.from('app_settings').upsert(updates, { onConflict: 'setting_key' });

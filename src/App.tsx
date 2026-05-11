@@ -9,6 +9,16 @@ import RPPOutput from './components/RPPOutput';
 function MainApp() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const { settings } = useSettings();
+
+  React.useEffect(() => {
+    if (settings.logoUrl) {
+      const link = document.getElementById('favicon') as HTMLLinkElement;
+      if (link) {
+        link.href = settings.logoUrl;
+      }
+    }
+  }, [settings.logoUrl]);
 
   return (
     <div className="flex flex-col h-screen w-full bg-slate-50 text-slate-900 font-sans overflow-hidden">
@@ -16,7 +26,7 @@ function MainApp() {
         <div className="flex items-center gap-3">
           <div className="group relative cursor-pointer active:scale-95 transition-transform" title="Double click for Supabase Config" onDoubleClick={() => setIsSettingsOpen(true)}>
             <img 
-              src="https://lh3.googleusercontent.com/d/1FV7EmCnGHRbpQvbbdrRv-t0KZCUXbIqk" 
+              src={settings.logoUrl || "https://lh3.googleusercontent.com/d/1FV7EmCnGHRbpQvbbdrRv-t0KZCUXbIqk"} 
               alt="Logo" 
               className="w-10 h-10 object-contain rounded-lg shadow-sm border border-slate-200"
             />
