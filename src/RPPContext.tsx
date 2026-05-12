@@ -29,6 +29,7 @@ const defaultRPPData: RPPData = {
   learningModes: [],
   modelPembelajaranList: [],
   saranaPrasarana: 'LCD Projector, Papan Tulis, Spidol',
+  sumberBelajar: '',
   kemitraan: 'Guru Mapel Geografi, Pemerhati lingkungan hidup',
   lingkunganPembelajaran: 'Budaya tertib, bersih, disiplin (5K), Adi Wiyata',
   digitalPerencanaan: 'Pemanfaatan AI, Canva.',
@@ -42,7 +43,21 @@ const defaultRPPData: RPPData = {
 const RPPContext = createContext<RPPContextProps | undefined>(undefined);
 
 export const RPPProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [rppData, setRPPData] = useState<RPPData>(defaultRPPData);
+  const [rppData, setRPPData] = useState<RPPData>(() => {
+    const saved = localStorage.getItem('rpp_data');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Failed to parse saved RPP data:", e);
+      }
+    }
+    return defaultRPPData;
+  });
+
+  React.useEffect(() => {
+    localStorage.setItem('rpp_data', JSON.stringify(rppData));
+  }, [rppData]);
 
   const updateRPPData = (data: Partial<RPPData>) => {
     setRPPData((prev) => ({ ...prev, ...data }));

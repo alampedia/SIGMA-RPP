@@ -25,7 +25,7 @@ const executeWithKeyRotation = async (keys: string[], fetchFn: (key: string) => 
   throw lastError || new Error("All provided API keys failed to generate content.");
 };
 
-export const generateTPWithGemini = async (cpText: string, apiKey: string): Promise<TPGroup[]> => {
+export const generateTPWithGemini = async (cpText: string, apiKey: string): Promise<{tujuanPembelajaran: TPGroup[], sumberBelajar: string}> => {
   if (!apiKey) throw new Error("Gemini API Key is missing. Please configure it in Settings.");
 
   const keys = getKeys(apiKey);
@@ -34,33 +34,37 @@ export const generateTPWithGemini = async (cpText: string, apiKey: string): Prom
         
 Untuk setiap materi pokok yang teridentifikasi, buatkan 3 Tujuan Pembelajaran (TP) sesuai level kognitif: Memahami, Mengaplikasi, dan Merefleksi.
 
-Example 1: If the main topic is "various computer network models", the result:
-- Memahami: Menjelaskan konsep dasar dan karakteristik berbagai model jaringan komputer.
-- Mengaplikasi: Mengidentifikasi dan mengklasifikasikan model jaringan komputer dalam skenario nyata.
-- Merefleksi: Mengevaluasi kelebihan dan kekurangan berbagai model jaringan komputer.
+Selain itu, berikan rekomendasi "Sumber Belajar" yang relevan dengan topik ini. Berikan URL atau nama platform yang relevan (misalnya Wordwall, Quizizz, YouTube, atau artikel relevan). Gabungkan rekomendasinya menjadi satu teks string (contoh: "Video YouTube tentang jaringan, Modul Interaktif Quizizz terkait routing, dsb").
 
 Berikan jawaban dalam format JSON yang valid.`;
 
   const schema = {
-    type: "array",
-    items: {
-      type: "object",
-      properties: {
-        topic: { type: "string" },
-        tps: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              level: { type: "string" },
-              text: { type: "string" }
-            },
-            required: ["level", "text"]
-          }
+    type: "object",
+    properties: {
+      tujuanPembelajaran: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            topic: { type: "string" },
+            tps: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  level: { type: "string" },
+                  text: { type: "string" }
+                },
+                required: ["level", "text"]
+              }
+            }
+          },
+          required: ["topic", "tps"]
         }
       },
-      required: ["topic", "tps"]
-    }
+      sumberBelajar: { type: "string" }
+    },
+    required: ["tujuanPembelajaran", "sumberBelajar"]
   };
 
   return executeWithKeyRotation(keys, async (activeKey: string) => {

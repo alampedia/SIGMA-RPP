@@ -8,10 +8,34 @@ import { LoaderDots } from './LoaderDots';
 const RPPOutput: React.FC = () => {
   const { rppData } = useRPP();
   const { settings } = useSettings();
-  const [step, setStep] = useState(3); 
+  const [step, setStep] = useState(() => {
+    const s = localStorage.getItem('app_step');
+    return s ? parseInt(s, 10) : 3;
+  }); 
   const [generatingRpp, setGeneratingRpp] = useState(false);
-  const [rppContentRefs, setRppContentRefs] = useState<string[]>([]);
+  const [rppContentRefs, setRppContentRefs] = useState<string[]>(() => {
+    const s = localStorage.getItem('app_rpp_contents');
+    return s ? JSON.parse(s) : [];
+  });
   const [rppError, setRppError] = useState('');
+
+  // Save to localStorage when they change
+  React.useEffect(() => {
+    localStorage.setItem('app_step', step.toString());
+  }, [step]);
+
+  React.useEffect(() => {
+    localStorage.setItem('app_rpp_contents', JSON.stringify(rppContentRefs));
+  }, [rppContentRefs]);
+
+  const prevTPRef = React.useRef(rppData.tujuanPembelajaran);
+  React.useEffect(() => {
+    if (rppData.tujuanPembelajaran !== prevTPRef.current) {
+      setStep(3);
+      setRppContentRefs([]);
+      prevTPRef.current = rppData.tujuanPembelajaran;
+    }
+  }, [rppData.tujuanPembelajaran]);
 
   if (!rppData.tujuanPembelajaran || rppData.tujuanPembelajaran.length === 0) {
     return null;
@@ -341,7 +365,8 @@ const RPPOutput: React.FC = () => {
                      <li><strong>Kemitraan Pembelajaran:</strong> ${rppData.kemitraan || '-'}</li>
                      <li><strong>Lingkungan Pembelajaran:</strong> ${rppData.lingkunganPembelajaran || '-'}</li>
                      <li><strong>Pemanfaatan Digital:</strong> Perencanaan (${rppData.digitalPerencanaan || '-'}), Pelaksanaan (${rppData.digitalPelaksanaan || '-'}), Asesmen (${rppData.digitalAsesmen || '-'})</li>
-                     <li><strong>Sumber Belajar:</strong> ${rppData.saranaPrasarana || '-'}</li>
+                     <li><strong>Sarana & Prasarana:</strong> ${rppData.saranaPrasarana || '-'}</li>
+                     <li><strong>Sumber Belajar:</strong> ${rppData.sumberBelajar || '-'}</li>
                    </ul>
                  </div>
 

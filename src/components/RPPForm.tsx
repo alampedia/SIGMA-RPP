@@ -137,7 +137,10 @@ const RPPForm: React.FC = () => {
     setIsGenerating(true);
     try {
       const results = await generateTPWithGemini(rppData.cp_full_text, settings.geminiApiKey);
-      updateRPPData({ tujuanPembelajaran: results });
+      updateRPPData({ 
+        tujuanPembelajaran: results.tujuanPembelajaran,
+        sumberBelajar: results.sumberBelajar
+      });
       // We will scroll to Output section later via standard DOM if we want, or just let React render it.
     } catch (err: any) {
       setError(err.message || 'Gagal menganalisis CP dengan AI. Pastikan format CP jelas atau coba lagi nanti.');
