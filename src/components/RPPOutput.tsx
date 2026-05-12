@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useRPP } from '../RPPContext';
-import { Printer } from 'lucide-react';
+import { Printer, Download } from 'lucide-react';
 import { generateHOTSWithGemini } from '../services/gemini';
 import { useSettings } from '../SettingsContext';
 import { LoaderDots } from './LoaderDots';
@@ -72,10 +72,52 @@ const RPPOutput: React.FC = () => {
     }, 1000);
   };
 
+  const handleExportWord = (title: string, htmlContent: string) => {
+    const preHtml = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+    <head><meta charset='utf-8'><title>${title}</title>
+    <style>
+      body { font-family: "Times New Roman", serif; font-size: 11pt; line-height: 1.5; color: black; }
+      table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 15px; }
+      th, td { border: 1px solid black; padding: 8px; text-align: left; vertical-align: top; }
+      th { font-weight: bold; }
+      h2 { font-size: 14pt; font-weight: bold; text-align: center; margin-bottom: 20px; text-transform: uppercase; }
+      h3 { font-size: 12pt; font-weight: bold; margin-top: 15px; margin-bottom: 10px; text-transform: uppercase; }
+      ul, ol { margin-left: 20px; margin-bottom: 15px; }
+      .text-center { text-align: center; }
+      .border-b-2 { border-bottom: 2px solid black; }
+      .font-bold { font-weight: bold; }
+      .italic { font-style: italic; }
+      .uppercase { text-transform: uppercase; }
+      .page-footer { text-align: center; font-size: 9pt; margin-top: 30px; border-top: 1px solid black; padding-top: 5px;}
+      .pb-16 { padding-bottom: 40px; }
+      .flex { display: flex; }
+      .justify-between { justify-content: space-between; }
+      .rpp-section { page-break-after: always; margin-bottom: 20px; }
+      .lampiran-section { page-break-before: always; margin-bottom: 20px; }
+    </style>
+    </head><body>
+      ${htmlContent}
+    </body></html>`;
+
+    const blob = new Blob(['\ufeff', preHtml], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const filename = (title ? title : 'Instumen_RPP') + '.doc';
+    
+    const downloadLink = document.createElement("a");
+    downloadLink.href = url;
+    downloadLink.download = filename;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    URL.revokeObjectURL(url);
+  };
+
   const parseNameAndNip = (s: string) => {
     if (s.includes('/')) {
       const parts = s.split('/');
-      return { name: parts[0].trim(), nip: parts[1].trim() };
+      let nipStr = parts[1].trim();
+      nipStr = nipStr.replace(/^NIP[:\.]?\s*/i, '');
+      return { name: parts[0].trim(), nip: nipStr };
     }
     return { name: s.trim(), nip: '' };
   };
@@ -526,12 +568,20 @@ const RPPOutput: React.FC = () => {
                   <h2 className="text-xl font-bold text-indigo-900">RPP Berhasil Dibuat</h2>
                   <p className="text-sm text-indigo-700">Terdapat {rppContentRefs.length} pertemuan yang berhasil dirancang.</p>
                </div>
-               <button 
-                 onClick={() => handlePrint("RPP Lengkap", rppContentRefs.join(''))}
-                 className="flex gap-2 items-center bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg font-semibold transition shadow-md shadow-indigo-100"
-               >
-                 <Printer className="w-5 h-5" /> Cetak Semua
-               </button>
+               <div className="flex gap-4">
+                 <button 
+                   onClick={() => handleExportWord("RPP_Lengkap_" + rppData.mapel.replace(/\s+/g, '_'), rppContentRefs.join(''))}
+                   className="flex gap-2 items-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-semibold transition shadow-md shadow-blue-100"
+                 >
+                   <Download className="w-5 h-5" /> Export Word
+                 </button>
+                 <button 
+                   onClick={() => handlePrint("RPP Lengkap", rppContentRefs.join(''))}
+                   className="flex gap-2 items-center bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg font-semibold transition shadow-md shadow-indigo-100"
+                 >
+                   <Printer className="w-5 h-5" /> Cetak PDF
+                 </button>
+               </div>
             </div>
 
             <div className="space-y-8 flex flex-col items-center">
