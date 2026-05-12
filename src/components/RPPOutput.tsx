@@ -42,10 +42,38 @@ const RPPOutput: React.FC = () => {
   }
 
   const handlePrint = (title: string, htmlContent: string) => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
+    let doc: Document | null = null;
+    let win: Window | null = null;
+    let usingIframe = true;
 
-    printWindow.document.write(`
+    try {
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = '0';
+      iframe.id = 'print-iframe';
+      document.body.appendChild(iframe);
+      win = iframe.contentWindow;
+      doc = iframe.contentWindow?.document || null;
+    } catch (e) {
+      usingIframe = false;
+    }
+
+    if (!doc) {
+      usingIframe = false;
+      win = window.open('', '_blank');
+      if (!win) {
+        alert("Pop-up untuk cetak terblokir. Silakan izinkan pop-up atau buka aplikasi ini di Tab Baru (ikon di kanan atas).");
+        return;
+      }
+      doc = win.document;
+    }
+
+    doc.open();
+    doc.write(`
       <html>
         <head>
           <title>${title}</title>
@@ -88,12 +116,17 @@ const RPPOutput: React.FC = () => {
         </body>
       </html>
     `);
-    printWindow.document.close();
+    doc.close();
+
     setTimeout(() => {
-      printWindow.focus();
-      printWindow.print();
-      printWindow.close();
-    }, 1000);
+      win?.focus();
+      win?.print();
+      if (usingIframe && win?.frameElement) {
+        setTimeout(() => win?.frameElement?.remove(), 2000);
+      } else {
+        win?.close();
+      }
+    }, 1500);
   };
 
   const handleExportWord = (title: string, htmlContent: string) => {
@@ -130,10 +163,17 @@ const RPPOutput: React.FC = () => {
     const downloadLink = document.createElement("a");
     downloadLink.href = url;
     downloadLink.download = filename;
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-    URL.revokeObjectURL(url);
+    downloadLink.target = "_blank"; // added target blank to bypass strict sandbox
+
+    try {
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    } catch(e) {
+      alert("Gagal mengunduh file Word karena pemblokiran browser. Buka aplikasi di Tab Baru.");
+    }
+    
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
   };
 
   const parseNameAndNip = (s: string) => {
@@ -366,7 +406,7 @@ const RPPOutput: React.FC = () => {
                      <li><strong>Lingkungan Pembelajaran:</strong> ${rppData.lingkunganPembelajaran || '-'}</li>
                      <li><strong>Pemanfaatan Digital:</strong> Perencanaan (${rppData.digitalPerencanaan || '-'}), Pelaksanaan (${rppData.digitalPelaksanaan || '-'}), Asesmen (${rppData.digitalAsesmen || '-'})</li>
                      <li><strong>Sarana & Prasarana:</strong> ${rppData.saranaPrasarana || '-'}</li>
-                     <li><strong>Sumber Belajar:</strong> ${rppData.sumberBelajar || '-'}</li>
+                     <li><strong>Sumber Belajar:</strong> ${Array.isArray(rppData.sumberBelajar) && rppData.sumberBelajar.length > 0 ? rppData.sumberBelajar.map(sb => `<a href="${sb.url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline">${sb.title}</a>`).join(', ') : '-'}</li>
                    </ul>
                  </div>
 

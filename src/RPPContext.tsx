@@ -29,7 +29,7 @@ const defaultRPPData: RPPData = {
   learningModes: [],
   modelPembelajaranList: [],
   saranaPrasarana: 'LCD Projector, Papan Tulis, Spidol',
-  sumberBelajar: '',
+  sumberBelajar: [],
   kemitraan: 'Guru Mapel Geografi, Pemerhati lingkungan hidup',
   lingkunganPembelajaran: 'Budaya tertib, bersih, disiplin (5K), Adi Wiyata',
   digitalPerencanaan: 'Pemanfaatan AI, Canva.',

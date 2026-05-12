@@ -25,7 +25,7 @@ const executeWithKeyRotation = async (keys: string[], fetchFn: (key: string) => 
   throw lastError || new Error("All provided API keys failed to generate content.");
 };
 
-export const generateTPWithGemini = async (cpText: string, apiKey: string): Promise<{tujuanPembelajaran: TPGroup[], sumberBelajar: string}> => {
+export const generateTPWithGemini = async (cpText: string, apiKey: string): Promise<{tujuanPembelajaran: TPGroup[], sumberBelajar: {title: string, url: string}[]}> => {
   if (!apiKey) throw new Error("Gemini API Key is missing. Please configure it in Settings.");
 
   const keys = getKeys(apiKey);
@@ -34,7 +34,7 @@ export const generateTPWithGemini = async (cpText: string, apiKey: string): Prom
         
 Untuk setiap materi pokok yang teridentifikasi, buatkan 3 Tujuan Pembelajaran (TP) sesuai level kognitif: Memahami, Mengaplikasi, dan Merefleksi.
 
-Selain itu, berikan rekomendasi "Sumber Belajar" yang relevan dengan topik ini. Berikan URL atau nama platform yang relevan (misalnya Wordwall, Quizizz, YouTube, atau artikel relevan). Gabungkan rekomendasinya menjadi satu teks string (contoh: "Video YouTube tentang jaringan, Modul Interaktif Quizizz terkait routing, dsb").
+Selain itu, berikan rekomendasi "Sumber Belajar" yang relevan dengan topik ini. Berikan URL nyata/real atau platform yang relevan (misalnya Video YouTube, Quizizz, Wordwall, atau artikel terkait). Buatkan dalam bentuk daftar objek yang memiliki title (judul materi/referensi) dan url (link URL yang bisa diakses menuju materi yang spesifik tersebut atau URL platform dengan keyword pencarian). Pastikan URL format valid.
 
 Berikan jawaban dalam format JSON yang valid.`;
 
@@ -62,7 +62,17 @@ Berikan jawaban dalam format JSON yang valid.`;
           required: ["topic", "tps"]
         }
       },
-      sumberBelajar: { type: "string" }
+      sumberBelajar: { 
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            title: { type: "string" },
+            url: { type: "string" }
+          },
+          required: ["title", "url"]
+        }
+      }
     },
     required: ["tujuanPembelajaran", "sumberBelajar"]
   };

@@ -41,7 +41,7 @@ export interface RPPData {
   learningModes: string[];
   modelPembelajaranList: string[];
   saranaPrasarana: string;
-  sumberBelajar: string;
+  sumberBelajar: { title: string; url: string }[];
   kemitraan: string;
   lingkunganPembelajaran: string;
   digitalPerencanaan: string;
